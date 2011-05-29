@@ -1,17 +1,18 @@
 SampleApp::Application.routes.draw do
  
-	resources :users
-  root :to => "pages#home"
+	resources 			:users
+	
+  root 					:to => "pages#home"
  
-  match '/contact', :to => 'pages#contact'
+  match '/contact', 	:to => 'pages#contact'
   
-  match '/about', :to => 'pages#about'
+  match '/about', 		:to => 'pages#about'
   
-  match '/news', :to => 'pages#news'
+  match '/news', 		:to => 'pages#news'
   
-  match '/help', :to => 'pages#help'
+  match '/help', 		:to => 'pages#help'
   
-  match '/signup', :to => 'users#new'
+  match '/signup', 		:to => 'users#new'
   
  
 
