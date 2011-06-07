@@ -17,13 +17,15 @@ describe UsersController do
   		
   		before(:each)do
   			@user = test_sign_in(Factory(:user))
-  			Factory(:user,  :email => "another@example.com")
-  			Factory(:user,  :email => "another@example.net")
-  		end	
-  		30.times do
-  			Factory(:user, :email => Factory.next(:email))
+  			second = Factory(:user, :name => "Bob",  :email => "another@example.com")
+  			third = Factory(:user,  :name => "Ben",  :email => "another@example.net")
+  			
+  			#@user = [@user, second, third] 		
+  			30.times do
+  				Factory(:user,  :name =>  Factory.next(:name),
+  								:email => Factory.next(:email))
   		end
-  		
+  		end
   		it "should be successful" do
   			get :index
   			response.should be_success
@@ -50,11 +52,11 @@ describe UsersController do
   	  	response.should have_selector('a', 	:href => "/users?page=2",
   	  										:content => "Next")
   	  	end
-  	  	end
   	  	
-  	  	it "should have a delete link for admins" do
-  	  		@user.toggle!(:admin)
+  	  	
+  	  	it "should have a delete links for admins" do
   	  		other_user = User.all.second
+  	  		@user.toggle!(:admin)
   	  		get :index
   	  		response.should have_selector('a', :href => user_path(other_user),
   	  										   :content => "delete")
@@ -68,7 +70,7 @@ describe UsersController do
   	  		response. should_not have_selector('a', :href => user_path(other_user),
   	  											    :content => "delete")
   	  		
-  	  		
+  	   end		
   	 end		
   end
   		
@@ -186,28 +188,30 @@ describe "Post 'create'" do
  	  end
  	end
  	
- 	describe "Get 'edit'" do
- 		before(:each) do
- 			@user = Factory(:user)
- 			test_sign_in(@user)
- 	end
- 			
- 			it 'should be successful' do
- 				get :edit, :id => @user
- 				response.should be_success
- 	end
- 			
- 			it "should have the right title" do	
- 				get :edit, :id => @user
- 				response.should have_selector('title', :content => "Edit User")
- 	end
  	
- 			it "should have a link to change the Gravatar" do
- 				get :edit,	:id => @user
- 				response. should have_selector('a', :href 		=> 'http://gravatar.com/emails', 
- 													:content	=> "Change")
- 	end
- 				
+ 	
+ describe "GET 'edit'" do
+    
+    before(:each) do
+      @user = Factory(:user)
+      test_sign_in(@user)
+    end
+    
+    it "should be successful" do
+      get :edit, :id => @user
+      response.should be_success
+    end
+    
+    it "should have the right title" do
+      get :edit, :id => @user
+      response.should have_selector('title', :content => "Edit user")
+    end
+    
+    it "should have a link to change the Gravatar" do
+      get :edit, :id => @user
+      response.should have_selector('a', :href => 'http://gravatar.com/emails',
+                                         :content => "change")
+    end
  end
  	
  	describe "Put 'update'"	do
@@ -243,17 +247,16 @@ describe "Post 'create'" do
  				  :password => "barbaz", :password_confirmation => "barbaz"}
  		end
  		
- 		it "should change the users attributes" do
- 			put :update,:id => @user, :user =>@attr
- 			user = assigns(:user)
- 			@user.reload
- 			@user.name.should 					== user.name
- 			@user.email.should					== user.email
- 			@user.encrypted_password.should 	== user.encrypted_password
- 			end 
+ 		it "should change the user's attributes" do
+			put :update, :id => @user, :user => @attr
+			@user.reload
+			@user.name.should == @attr[:name]
+			@user.email.should == @attr[:email]
+			@user.encrypted_password.should == assigns(:user).encrypted_password
+end
  			
  		it "should have a flash message" do
- 			put :update,:id => @user, :user =>@attr
+ 			put :update,:id => @user, :user => @attr
  			flash[:success].should =~ /updated/
  		
  			end						  
@@ -298,51 +301,54 @@ describe "Post 'create'" do
  	end			
  end
 
-	describe "Delete 'destroy'" do
-		
-		before(:each) do
-			@user = Factory(:user)
-		end
-	
-	describe "as a non-signed-in-user" do	
-		it"should deny access" do
-			delete :destroy, :id => @user
-			response.should redirect_to(signin_path)
-		end
-	end
-	
-	describe "as non-admin user" do
-		it "should protect the action" do
-			test_sign_in(@user)
-			delete :destroy, :id => @user
-			response.should redirect_to(root_path)			
-		end
-	end
-		
-		describe "as an admin user" do
+	describe "DELETE 'destroy'" do
+    
+    before(:each) do
+      @user = Factory(:user)
+    end
+    
+    describe "as a non-signed-in user" do
+      it "should deny access" do
+        delete :destroy, :id => @user
+        response.should redirect_to(signin_path)
+      end
+    end
+    
+    describe "as non-admin user" do
+      it "should protect the action" do
+        test_sign_in(@user)
+        delete :destroy, :id => @user
+        response.should redirect_to(root_path)
+      end
+    end
+    
+    describe "as an admin user" do
+      
+      before(:each) do
+        @admin = Factory(:user, :email => "admin@example.com", :admin => true)
+        test_sign_in(@admin)
+      end
+
+      it "should destroy the user" do
+        lambda do
+          delete :destroy, :id => @user
+        end.should change(User, :count).by(-1)
+      end
+      
+      it "should redirect to the users page" do
+        delete :destroy, :id => @user
+        flash[:success].should =~ /destroyed/i
+        response.should redirect_to(users_path)
+      end
+      
+      it "should not be able to destroy itself" do
+        lambda do
+          delete :destroy, :id => @admin
+        end.should_not change(User, :count)
+      end
+    end
+  end
 			
-			before (:each) do
-				admin = Factory(:user, :email => "admin@example.com", :admin => true)
-				test_sign_in(admin)
-			end
-		it "should destroy the user"
-			lambda do
-				delete :destroy, :id => @user
-			end.should change(User, :count).by(-1)
-			end
-		
-		it "should redirect to the users path" do
-			delete :destroy, :id => @user
-			response.should redirect_to(users_path)
-		end
-		
-		it "should not be able to destroy itself" do
-			lambda do
-				delete :destroy, :id => @admin
-			end.should_not change(User, :count)
-		end
 			
-			
-end
 end
 

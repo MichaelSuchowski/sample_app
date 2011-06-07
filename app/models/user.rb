@@ -4,6 +4,8 @@ class User < ActiveRecord::Base
 	
 	attr_accessible :name, :email, :password, :password_confirmation
 	
+	has_many :microposts, :dependent => :destroy
+	
 	email_regex = /\A[\w+.\-]+@[a-z\d.\-]+\.[a-z]+\z/i
 	
 	validates :name,  :presence    => true,
@@ -18,6 +20,7 @@ class User < ActiveRecord::Base
 							:length => {:within => 6..40}
 							
 	before_save  :encrypt_password
+	
 	
 	def User.authenticate(email, submitted_password)
 		user = find_by_email(email)
