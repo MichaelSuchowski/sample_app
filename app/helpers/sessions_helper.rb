@@ -23,6 +23,10 @@ module SessionsHelper
 		
 	end
 	
+	def authenticate
+  		deny_access unless signed_in?
+  	end
+	
 	def current_user?(user)
 		user== current_user
 	end
