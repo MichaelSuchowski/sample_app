@@ -8,10 +8,12 @@ describe PagesController do
   end
 
   describe "GET 'home'" do
+  	describe "when not signed in" do 		
     it "should be successful" do
       get 'home'
       response.should be_success
     end
+    
     it  "should have the right title" do
       get 'home'
       response.should have_selector("title",
@@ -23,7 +25,23 @@ describe PagesController do
       response.body.should_not =~ /<body>\s*<\/body>/
     end
   end
-
+  
+  describe "when signed in" do
+  	before(:each) do
+  		@user = test_sign_in(Factory(:user))
+  		other_user = Factory(:user, :email => Factory.next(:email))
+  		other_user.follow!(@user)
+  		end	
+  		
+  	it "should have the right follower/following counts" do
+  		get :home
+  		response.should have_selector('a', 	:href => following_user_path(@user),
+  											:content => "0 following")
+  		response.should have_selector('a', 	:href => followers_user_path(@user),
+  											:content => "1 follower")
+  		end	
+  	end
+end
   describe "GET 'contact'" do
     it "should be successful" do
       get 'contact'
