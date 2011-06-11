@@ -1,6 +1,8 @@
 require 'spec_helper'
 
 	describe Micropost do
+		
+		
   		before(:each) do
   			@user = Factory(:user)
   			@attr = {:content => "lorem ipsum", :user_id => 1}
