@@ -5,7 +5,7 @@ class UsersController < ApplicationController
   
   def index
     @users = User.paginate(:page => params[:page])
-    @title = "All Users"
+    @title = "All users"
   end
   
   def show
@@ -31,7 +31,7 @@ class UsersController < ApplicationController
   
   def new
     @user  = User.new
-    @title = "Sign-up"
+    @title = "Sign up"
   end
   
   def create
@@ -40,7 +40,7 @@ class UsersController < ApplicationController
       sign_in @user
       redirect_to @user, :flash => { :success => "Welcome to the Sample App!" }
     else
-      @title = "Sign-up"
+      @title = "Sign up"
       render 'new'
     end
   end
@@ -53,7 +53,7 @@ class UsersController < ApplicationController
     if @user.update_attributes(params[:user])
       redirect_to @user, :flash => { :success => "Profile updated." }
     else
-      @title = "Edit User"
+      @title = "Edit user"
       render 'edit'
     end
   end
