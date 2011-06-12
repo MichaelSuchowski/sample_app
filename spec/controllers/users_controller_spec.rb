@@ -134,6 +134,14 @@ describe UsersController do
  	response.should have_selector('td.sidebar', 
  								 :content => @user.microposts.count.to_s)
  	end
+ 	
+ 	describe "when signed in as another user" do
+ 		it "should be successful" do
+ 			test_sign_in(Factory(:user, :email => Factory.next(:emal)))
+ 			get :show, :id => @user
+ 			response.should be_success
+ 		end
+ 	end
 end
 
 
@@ -369,4 +377,38 @@ end
       end
     end
   end
+  
+  describe "follow pages" do
+  
+  describe "when not signed in" do
+  		it"should protect 'following'" do
+  			get :following, :id => 1
+  			response.should redirect_to(signin_path)
+  		end
+  		
+  		it"should protect 'followers'" do
+  			get :following, :id => 1
+  			response.should redirect_to(signin_path)
+  		end
+  	end
+  	
+  describe "when signed in" do
+  	
+  	before(:each)do
+  	  @user = test_sign_in(Faactory(:user))
+  	  @other_user = Factory(:user, :email => Factory.next(:email))
+  	  @user.follow!(@other_user)
+  	  end
+  	  
+  	  it"should show user following"
+  	  get :following, :id => @user
+  	  response.should have_selector('a', 	:href => user_path(@other_user),
+  	  										:content => @other_user.name)
+  	  end
+  	  
+  	  it"should show user following"
+  	  get :following, :id => @other_user
+  	  response.should have_selector('a', 	:href => user_path(@user),
+  	  										:content => @user.name)
+   end
 end
